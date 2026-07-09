@@ -14,10 +14,10 @@ uint64_t perft(Board& board, int depth, bool log) {
 	if (depth == 0)
 		return 1;
 
-	const Hash hash = hashBoard(board.state());
-	auto& tableEntry = perftTable[depth][hash & (perftTableSize - 1)];
-	if (tableEntry.count != 0 && tableEntry.hash == hash)
-		return tableEntry.count;
+	// const Hash hash = hashBoard(board.state());
+	// auto& tableEntry = perftTable[depth][hash & (perftTableSize - 1)];
+	// if (tableEntry.count != 0 && tableEntry.hash == hash)
+	// 	return tableEntry.count;
 
 	Move moves[200];
 	Move* moveListEnd = genMoves(board.state(), moves);
@@ -35,7 +35,7 @@ uint64_t perft(Board& board, int depth, bool log) {
 			cerr << moveToString(moves[i]) << ": " << child << endl;
 	}
 
-	tableEntry = { hash, res };
+	// tableEntry = { hash, res };
 
 	return res;
 }
@@ -95,9 +95,9 @@ void testEval() {
 }
 
 int main() {
-	// testEval();
+	testEval();
 	// testPerft();
-	startProtocol();
+	// startProtocol();
 
 	return 0;
 }

@@ -11,6 +11,32 @@ inline bool winTable[1 << 16] = {};
 inline int evalWeights[5] = { 0, 0, 214, 500, 0 };
 inline int pieceWeights[4] = { 0, 30, 40, 30}; // Elephants can't get killed so their weight is irrelevant
 inline int placedBonuses[4] = { 0, 0, 1, 0 };
+inline int evalPositionTables[4][16] = {
+    {
+        -1, 0, 0, -1,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        -1, 0, 0, -1,
+    },
+    {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    },
+    {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    },
+    {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    },
+};
 inline int evalTable[1 << 16] = {};
 constexpr int MateScore = 1000000;
 
@@ -25,6 +51,13 @@ inline int scoreSide(const BoardState& board, const Color color) {
     score += pieceWeights[Gazelle] * PopCount(board.pieces[color] & (3 << (2 * Gazelle)));
     score += pieceWeights[Lion] * PopCount(board.pieces[color] & (3 << (2 * Lion)));
     score += pieceWeights[Zebra] * PopCount(board.pieces[color] & (3 << (2 * Zebra)));
+
+    // u16 mask = board.colorBoards[color] & board.pieceBoards[Elephant];
+    // BitLoop(mask) {
+    //     const Square sq = SquareOf(mask);
+    //     score += evalPositionTables[Elephant][sq];
+    // }
+
     return score;
 }
 inline int evaluate(const BoardState& board) {
