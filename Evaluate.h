@@ -8,8 +8,15 @@
 
 inline bool winTable[1 << 16] = {};
 
-inline int evalWeights[5] = { 0, 0, 214, 500, 0 };
-inline int pieceWeights[4] = { 0, 30, 40, 30}; // Elephants can't get killed so their weight is irrelevant
+inline int evalWeightsOld[5] = { 0, 0, 214, 500, 0 };
+inline int evalWeights[5][5] = {
+    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},
+    {214, 214, 0, 0, 0},
+    {500, 500, 0, 0, 0},
+    {0, 0, 0, 0, 0}
+};
+inline int pieceWeights[4] = { 0, 30, 50, 30}; // Elephants can't get killed so their weight is irrelevant
 inline int placedBonuses[4] = { 0, 0, 1, 0 };
 inline int evalPositionTables[4][16] = {
     {
@@ -42,6 +49,15 @@ constexpr int MateScore = 1000000;
 
 inline int scoreSide(const BoardState& board, const Color color) {
     int score = evalTable[board.colorBoards[color]];
+    // const u16 occ = board.colorBoards[color];
+    // const u16 opp = board.colorBoards[!color];
+    // score += evalWeights[PopCount(diag & occ)][PopCount(diag & opp)];
+    // score += evalWeights[PopCount(antiDiag & occ)][PopCount(antiDiag & opp)];
+    // for (int idx = 0; idx < 4; idx++) {
+    //     score += evalWeights[PopCount(rows[idx] & occ)][PopCount(rows[idx] & opp)];
+    //     score += evalWeights[PopCount(cols[idx] & occ)][PopCount(cols[idx] & opp)];
+    // }
+
     score += (placedBonuses[Elephant] + pieceWeights[Elephant]) * PopCount(board.colorBoards[color] & board.pieceBoards[Elephant]);
     score += (placedBonuses[Gazelle] + pieceWeights[Gazelle]) * PopCount(board.colorBoards[color] & board.pieceBoards[Gazelle]);
     score += (placedBonuses[Lion] + pieceWeights[Lion]) * PopCount(board.colorBoards[color] & board.pieceBoards[Lion]);
@@ -80,11 +96,11 @@ inline bool hasLost(const BoardState& board) {
 inline void initEvalTables() {
     for (int board = 0; board < (1 << 16); board++) {
         u16 mask = board;
-        evalTable[board] += evalWeights[PopCount(diag & mask)];
-        evalTable[board] += evalWeights[PopCount(antiDiag & mask)];
+        evalTable[board] += evalWeightsOld[PopCount(diag & mask)];
+        evalTable[board] += evalWeightsOld[PopCount(antiDiag & mask)];
         for (int idx = 0; idx < 4; idx++) {
-            evalTable[board] += evalWeights[PopCount(rows[idx] & mask)];
-            evalTable[board] += evalWeights[PopCount(cols[idx] & mask)];
+            evalTable[board] += evalWeightsOld[PopCount(rows[idx] & mask)];
+            evalTable[board] += evalWeightsOld[PopCount(cols[idx] & mask)];
         }
     }
 

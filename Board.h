@@ -62,7 +62,7 @@ struct BoardState {
 
 struct Board {
 private:
-	BoardState states[200];
+	BoardState states[MAX_GAME_PLIES];
 	int stateIdx = 0;
 	
 public:

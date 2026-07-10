@@ -11,12 +11,15 @@ typedef uint16_t u16;
 typedef uint8_t Square;
 typedef uint8_t Row;
 typedef uint8_t Col;
+typedef int8_t Depth;
 
 enum PieceType : uint8_t { Elephant, Gazelle, Lion, Zebra, NoPiece };
 enum Color : uint8_t { White, Black };
 inline Color operator !(Color c) {
 	return Color(uint8_t(c) ^ 1);
 }
+
+constexpr int MAX_GAME_PLIES = 200;
 
 #define PopCount(X) __builtin_popcount(X)
 #define SquareOf(X) Square(__builtin_ctz(X)) // __tzcnt_u32
