@@ -12,6 +12,7 @@ typedef uint8_t Square;
 typedef uint8_t Row;
 typedef uint8_t Col;
 typedef int8_t Depth;
+typedef int16_t Ply;
 
 enum PieceType : uint8_t { Elephant, Gazelle, Lion, Zebra, NoPiece };
 enum Color : uint8_t { White, Black };

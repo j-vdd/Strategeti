@@ -63,13 +63,14 @@ struct BoardState {
 struct Board {
 private:
 	BoardState states[MAX_GAME_PLIES];
-	int stateIdx = 0;
 	
 public:
+	Ply ply = 0;
+
 	Board() {
 		states[0] = BoardState{};
 	};
-	Board(vector<string> strings, Color turn) {
+	Board(const vector<string>& strings, const Color turn) {
 		states[0] = BoardState{};
 		BoardState& state = states[0];
 
@@ -105,14 +106,14 @@ public:
 	}
 	
 	const BoardState& state() const {
-		return states[stateIdx];
+		return states[ply];
 	}
 
 	void makeMove(const Move& move) {
-		states[stateIdx + 1] = states[stateIdx];
-		stateIdx++;
+		states[ply + 1] = states[ply];
+		ply++;
 
-		BoardState& state = states[stateIdx];
+		BoardState& state = states[ply];
 
 		Square from = move.from;
 		Square to = move.to;
@@ -167,6 +168,6 @@ public:
 		state.turn = !state.turn;
 	}
 	void undo() {
-		stateIdx--;
+		ply--;
 	}
 };
