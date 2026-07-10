@@ -7,8 +7,6 @@
 #include "Board.h"
 
 inline bool winTable[1 << 16] = {};
-
-inline int evalWeightsOld[5] = { 0, 0, 214, 500, 0 };
 inline int evalWeights[5][5] = {
     {0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0},
@@ -16,8 +14,10 @@ inline int evalWeights[5][5] = {
     {500, 500, 0, 0, 0},
     {0, 0, 0, 0, 0}
 };
-inline int pieceWeights[4] = { 0, 30, 50, 30}; // Elephants can't get killed so their weight is irrelevant
-inline int placedBonuses[4] = { 0, 0, 1, 0 };
+
+inline int evalWeightsOld[5] = { 0, 0, 3, 6, 0 };
+inline int pieceWeights[4] = { 0, 30, 30, 30}; // Elephants can't get killed so their weight is irrelevant
+inline int placedBonuses[4] = { 10, 0, 1, 0 };
 inline int evalPositionTables[4][16] = {
     {
         -1, 0, 0, -1,

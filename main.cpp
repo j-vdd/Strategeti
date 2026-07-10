@@ -95,9 +95,9 @@ void testEval() {
 }
 
 int main() {
-	testEval();
+	// testEval();
 	// testPerft();
-	// startProtocol();
+	startProtocol();
 
 	return 0;
 }
