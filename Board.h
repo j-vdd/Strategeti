@@ -2,8 +2,10 @@
 
 #include "LookupTables.h"
 #include "Move.h"
+#include "Zobrist.h"
 
 struct BoardState {
+	Hash hash = 0;
 	u16 pieceBoards[4] = {};
 	u16 colorBoards[2] = {};
 
@@ -58,17 +60,31 @@ struct BoardState {
 		}
 		cerr << "   +---------+" << endl;
 	}
+
+	void hashBoard() {
+		hash = 0;
+		for (int i = 0; i < 4; i++)
+			hash ^= hashTablePieces[i][pieceBoards[i]];
+		hash ^= hashTableOcc[0][colorBoards[turn]];
+		hash ^= hashTableOcc[1][colorBoards[!turn]];
+
+		hash ^= hashTableSides[0][pieces[turn]];
+		hash ^= hashTableSides[1][pieces[!turn]];
+
+		hash ^= hashTableTurns[turn];
+	}
 };
 
 struct Board {
 private:
 	BoardState states[MAX_GAME_PLIES];
-	
+
 public:
 	Ply ply = 0;
 
 	Board() {
 		states[0] = BoardState{};
+		states[0].hashBoard();
 	};
 	Board(const vector<string>& strings, const Color turn) {
 		states[0] = BoardState{};
@@ -93,7 +109,7 @@ public:
 				else 
 					pt = Zebra;
 
-				Square sq = row * 4 + col;
+				const Square sq = row * 4 + col;
 
 				state.colorBoards[isBlack] |= squareBB(sq);
 				state.pieceBoards[pt] |= squareBB(sq);
@@ -103,10 +119,21 @@ public:
 					((state.pieces[isBlack] & (2 << (pt * 2))) >> 1);
 			}
 		}
+
+		states[0].hashBoard();
 	}
-	
+
 	const BoardState& state() const {
 		return states[ply];
+	}
+
+	bool isRepetition() const {
+		for (int i = ply - 4; i >= max(0, ply - 10); i--) {
+			if (states[i].hash == states[ply].hash)
+				return true;
+		}
+
+		return false;
 	}
 
 	void makeMove(const Move& move) {
@@ -115,8 +142,8 @@ public:
 
 		BoardState& state = states[ply];
 
-		Square from = move.from;
-		Square to = move.to;
+		const Square from = move.from;
+		const Square to = move.to;
 		if (from == to) {
 			state.colorBoards[0] |= squareBB(from);
 			state.pieceBoards[move.type] |= squareBB(from);
@@ -128,6 +155,8 @@ public:
 			swap(state.colorBoards[0], state.colorBoards[1]);
 			swap(state.pieces[0], state.pieces[1]);
 			state.turn = !state.turn;
+
+			state.hashBoard();
 			return;
 		}
 
@@ -166,8 +195,12 @@ public:
 		swap(state.colorBoards[0], state.colorBoards[1]);
 		swap(state.pieces[0], state.pieces[1]);
 		state.turn = !state.turn;
+
+		state.hashBoard();
 	}
 	void undo() {
 		ply--;
 	}
+
+// private:
 };

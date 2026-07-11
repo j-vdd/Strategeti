@@ -84,14 +84,18 @@ void testEval() {
 	};
 	Board board;
 	uint64_t totalNodeCount = 0;
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	for (auto [move, depth] : moves) {
 		findBestMove(board, 0, depth);
 		totalNodeCount += nodeCount;
 
 		make(board, move);
 	}
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
 	cout << "Total: " << double(totalNodeCount) / 1000000.0 << "Mn" << endl;
+	double ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+	cerr << double(totalNodeCount) / (ms / 1000.0) / 1000000.0 << "Mnps" << endl;
 }
 
 int main() {

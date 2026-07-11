@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <climits>
 
 enum HashBound : uint8_t { NONE, EXACT, LOWER, UPPER };
 struct HashEntry {
@@ -72,6 +73,7 @@ inline int moveOrder[2][4] = { //move, place
 	{2, 7, 1, 3}
 };
 inline Move killerMoves[100][3] = {};
+inline Hash repetitionTable[MAX_GAME_PLIES] = {};
 
 inline int64_t scoreMove(const BoardState& state, const Move& hashMove, const Move& move, const int depth) {
 	if (move == hashMove)
@@ -120,12 +122,13 @@ int negamax(Board& board, const Depth depth, const Depth maxDepth, int alpha, in
 	if (curTime > endTime)
 		return 0;
 
-	const int alphaOrig = alpha;
+	if (board.isRepetition())
+		return 0;
 
-	const Hash hash = hashBoard(board.state());
+	const int alphaOrig = alpha;
 	Move hashMove = makeMove(0, 0, NoPiece); // ????
 	bool succ;
-	const int hashResult = readTable(hash, depth, alpha, beta, succ, hashMove);
+	const int hashResult = readTable(board.state().hash, depth, alpha, beta, succ, hashMove);
 	if (succ)
 		return hashResult;
 
@@ -168,11 +171,11 @@ int negamax(Board& board, const Depth depth, const Depth maxDepth, int alpha, in
 		return 0;
 
 	if (alphaOrig < alpha && alpha < beta)
-		writeTable(hash, maxDepth, depth, board.ply, alpha, EXACT, bestMove);
+		writeTable(board.state().hash, maxDepth, depth, board.ply, alpha, EXACT, bestMove);
 	else if (alpha == alphaOrig)
-		writeTable(hash, maxDepth, depth, board.ply, alpha, UPPER, bestMove);
+		writeTable(board.state().hash, maxDepth, depth, board.ply, alpha, UPPER, bestMove);
 	else
-		writeTable(hash, maxDepth, depth, board.ply, alpha, LOWER, bestMove);
+		writeTable(board.state().hash, maxDepth, depth, board.ply, alpha, LOWER, bestMove);
 
 	return alpha;
 }
@@ -182,9 +185,8 @@ inline string findPv(Board& board) {
 
 	int i = 0;
 	while (i < 10) {
-		const Hash hash = hashBoard(board.state());
-		const auto& entry = hashTable[hash & (HashSize - 1)];
-		if (entry.hash != hash || entry.bound != EXACT)
+		const auto& entry = hashTable[board.state().hash & (HashSize - 1)];
+		if (entry.hash != board.state().hash || entry.bound != EXACT)
 			break;
 
 		i++;
@@ -246,9 +248,7 @@ inline Move findBestMove(Board& board, const double timeLeft, const Depth maxDep
 			break;
 
 		stable_sort(sortedMoves.rbegin(), sortedMoves.rend());
-
-		const Hash hash = hashBoard(board.state());
-		writeTable(hash, d, d, board.ply, alpha, EXACT, sortedMoves[0].second);
+		writeTable(board.state().hash, d, d, board.ply, alpha, EXACT, sortedMoves[0].second);
 
 		int bestScore = sortedMoves[0].first;
 

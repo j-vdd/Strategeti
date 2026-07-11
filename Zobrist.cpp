@@ -4,9 +4,12 @@
 
 #include "Zobrist.h"
 
+#include <random>
+#include <climits>
+
 void initHashes() {
     std::mt19937_64 gen(3882119);
-    uniform_int_distribution<uint64_t> dist(0, ULLONG_MAX);
+    std::uniform_int_distribution<uint64_t> dist(0, ULLONG_MAX);
     for (int mask = 0; mask < (1 << 16); ++mask) {
         hashTableOcc[0][mask] = dist(gen);
         hashTableOcc[1][mask] = dist(gen);
