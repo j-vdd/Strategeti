@@ -128,7 +128,7 @@ public:
 	}
 
 	bool isRepetition() const {
-		for (int i = ply - 4; i >= max(0, ply - 10); i--) {
+		for (int i = ply - 4; i >= max(0, ply - 20); i -= 2) {
 			if (states[i].hash == states[ply].hash)
 				return true;
 		}
