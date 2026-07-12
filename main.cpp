@@ -95,13 +95,13 @@ void testEval() {
 
 	cout << "Total: " << double(totalNodeCount) / 1000000.0 << "Mn" << endl;
 	double ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-	cerr << double(totalNodeCount) / (ms / 1000.0) / 1000000.0 << "Mnps" << endl;
+	cout << double(totalNodeCount) / (ms / 1000.0) / 1000000.0 << "Mnps" << endl;
 }
 
 int main() {
-	// testEval();
+	testEval();
 	// testPerft();
-	startProtocol();
+	// startProtocol();
 
 	return 0;
 }

@@ -23,7 +23,7 @@ struct HashEntry {
 	HashBound bound = NONE;
 };
 
-constexpr int HashSize = 1 << 22;
+constexpr int HashSize = 1 << 25;
 inline HashEntry hashTable[HashSize] = {};
 
 inline int readTable(Hash hash, Depth depth, int& alpha, int& beta, bool& succ, Move& hashMove) {
@@ -104,6 +104,23 @@ inline void sortMovesPartial(Move moveList[200], int64_t moveScores[200], const 
 	swap(moveScores[idx], moveScores[bestIdx]);
 }
 
+inline int pushScore(const int score) {
+	if (score >= MateScore - MAX_GAME_PLIES)
+		return score + 1;
+	if (score <= -MateScore + MAX_GAME_PLIES)
+		return score - 1;
+
+	return score;
+}
+inline int pullScore(const int score) {
+	if (score >= MateScore - MAX_GAME_PLIES)
+		return score - 1;
+	if (score <= -MateScore + MAX_GAME_PLIES)
+		return score + 1;
+
+	return score;
+}
+
 inline uint64_t nodeCount = 0;
 inline std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> endTime;
 inline std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> curTime;
@@ -111,9 +128,9 @@ inline std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<
 int negamax(Board& board, const Depth depth, const Depth maxDepth, int alpha, int beta) {
 	nodeCount++;
 	if (hasLost(board.state()))
-		return -MateScore + board.ply;
+		return -MateScore;
 	if (hasWon(board.state()))
-		return MateScore - board.ply;
+		return MateScore;
 
 	if (depth == 0)
 		return evaluate(board.state());
@@ -136,7 +153,7 @@ int negamax(Board& board, const Depth depth, const Depth maxDepth, int alpha, in
 	const Move* moveListEnd = genMoves(board.state(), moves);
 	const size_t numMoves = moveListEnd - moves;
 	if (numMoves == 0)
-		return -MateScore + board.ply;
+		return -MateScore;
 
 	int64_t moveScores[200];
 	for (int i = 0; i < numMoves; i++)
@@ -147,7 +164,7 @@ int negamax(Board& board, const Depth depth, const Depth maxDepth, int alpha, in
 		sortMovesPartial(moves, moveScores, i, numMoves);
 
 		board.makeMove(moves[i]);
-		const int score = -negamax(board, depth - 1, maxDepth, -beta, -alpha);
+		const int score = -pullScore(negamax(board, depth - 1, maxDepth, pushScore(-beta), pushScore(-alpha)));
 		board.undo();
 		
 		if (score > alpha) {
@@ -210,8 +227,8 @@ inline Move findBestMove(Board& board, const double timeLeft, const Depth maxDep
 	endTime = startTime + std::chrono::duration<double>(maxMoveTime);
 
 	memset(historyTable, 0, sizeof(historyTable));
-	for (auto& i : hashTable)
-		i = HashEntry();
+	// for (auto& i : hashTable)
+	// 	i = HashEntry();
 	for (auto& killerMove : killerMoves) {
 		killerMove[0] = makeMove(0, 0, NoPiece);
 		killerMove[1] = makeMove(0, 0, NoPiece);
@@ -230,10 +247,9 @@ inline Move findBestMove(Board& board, const double timeLeft, const Depth maxDep
 	for (Depth d = 2; d <= maxDepth; d++) {
 		int alpha = INT_MIN / 2;
 
-		int cnt = 0;
 		for (auto& [prevScore, move] : sortedMoves) {
 			board.makeMove(move);
-			const int score = -negamax(board, d - 1, d, INT_MIN / 2, -alpha + 1);
+			const int score = -pullScore(negamax(board, d - 1, d, pushScore(INT_MIN / 2), pushScore(-alpha + 1)));
 			board.undo();
 
 			alpha = max(alpha, score);
@@ -250,13 +266,7 @@ inline Move findBestMove(Board& board, const double timeLeft, const Depth maxDep
 		stable_sort(sortedMoves.rbegin(), sortedMoves.rend());
 		writeTable(board.state().hash, d, d, board.ply, alpha, EXACT, sortedMoves[0].second);
 
-		int bestScore = sortedMoves[0].first;
-
-		if (bestScore >= MateScore - MAX_GAME_PLIES)
-			bestScore += board.ply;
-		if (bestScore <= -MateScore + MAX_GAME_PLIES)
-			bestScore -= board.ply;
-
+		const int bestScore = sortedMoves[0].first;
 		cout <<
 			"info depth " << static_cast<int>(d) <<
 			" score " << bestScore <<
