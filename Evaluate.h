@@ -18,6 +18,7 @@ inline int evalWeights[5][5] = {
 inline int evalWeightsOld[5] = { 0, 0, 3, 6, 0 };
 inline int pieceWeights[4] = { 0, 30, 30, 30}; // Elephants can't get killed so their weight is irrelevant
 inline int placedBonuses[4] = { 10, 0, 1, 0 };
+inline int middleWeight = 9;
 inline int evalPositionTables[4][16] = {
     {
         -1, 0, 0, -1,
@@ -67,6 +68,9 @@ inline int scoreSide(const BoardState& board, const Color color) {
     score += pieceWeights[Gazelle] * PopCount(board.pieces[color] & (3 << (2 * Gazelle)));
     score += pieceWeights[Lion] * PopCount(board.pieces[color] & (3 << (2 * Lion)));
     score += pieceWeights[Zebra] * PopCount(board.pieces[color] & (3 << (2 * Zebra)));
+
+    constexpr u16 middleMask = squareBB(5) | squareBB(6) | squareBB(9) | squareBB(10);
+    score += middleWeight * PopCount(board.colorBoards[color] & middleMask);
 
     // u16 mask = board.colorBoards[color] & board.pieceBoards[Elephant];
     // BitLoop(mask) {
